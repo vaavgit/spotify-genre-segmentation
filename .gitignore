@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Large/Raw Datasets
+spotify_dataset.csv
+
+# Saved models and heavy pickle files
+*.pkl
