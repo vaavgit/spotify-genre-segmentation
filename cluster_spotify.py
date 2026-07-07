@@ -33,8 +33,7 @@ def main():
     # Save the scaler for the recommendation engine
     joblib.dump(scaler, os.path.join(project_dir, 'spotify_scaler.pkl'))
     
-    # 3. Elbow Method to find optimal K
-    # To keep runtimes fast, we use a sample of 15,000 rows for the elbow calculation
+    # Use a random sample of 15k rows for the elbow method to speed things up
     print("Calculating Elbow Method curve on a representative sample...")
     sample_size = min(15000, X_scaled.shape[0])
     sample_indices = np.random.choice(X_scaled.shape[0], size=sample_size, replace=False)
@@ -59,8 +58,7 @@ def main():
     plt.close()
     print(f"Elbow curve saved to {os.path.join(plots_dir, 'elbow_curve.png')}")
     
-    # 4. Train final K-Means model on full dataset
-    # We choose K=10 clusters as the optimal trade-off representing distinct music archetypes
+    # K=10 clusters works well as it represents distinct styles of music in the data
     optimal_k = 10
     print(f"\nTraining final K-Means with K={optimal_k} clusters on the full dataset...")
     kmeans_final = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
@@ -81,7 +79,7 @@ def main():
     df['pca1'] = X_pca[:, 0]
     df['pca2'] = X_pca[:, 1]
     
-    # Plot PCA clusters (using a sample of 5,000 for a clean scatter plot)
+    # Plot PCA clusters (using a sample of 5,000 to keep the plot from being too cluttered)
     plt.figure(figsize=(10, 8))
     df_sample = df.sample(n=5000, random_state=42)
     sns.scatterplot(x='pca1', y='pca2', hue='cluster', data=df_sample, 

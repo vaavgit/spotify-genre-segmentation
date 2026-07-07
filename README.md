@@ -1,54 +1,56 @@
-# Spotify Songs' Genre Segmentation & Recommendation System
+# Spotify Genre Segmentation & Recommendation System
 
-This repository contains the code, analysis, and clustering models for grouping Spotify tracks based on their auditory features and building a similarity-based recommendation engine. This is the Minor Project for the AI & ML Course.
+This is my minor project for the AI & ML course. I built a system that groups Spotify tracks into clusters based on their audio features (acousticness, danceability, energy, etc.) and uses these clusters to make similar song recommendations.
 
-## 🎵 Dataset Overview
-The dataset contains 114,000 Spotify tracks with features representing acoustic properties:
+---
+
+## 🎵 Dataset Details
+The dataset has around 114,000 tracks from Spotify. Each track has:
 - **Audio Features**: `danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, `instrumentalness`, `liveness`, `valence`, `tempo`
 - **Metadata**: `track_name`, `artists`, `album_name`, `track_genre`, `popularity`
 
 ---
 
-## 🛠️ Preprocessing and Cleaning
-Data cleaning was performed in `preprocess_spotify.py` to ensure high quality and prevent redundancy:
-1. **Index Removal**: Removed duplicate row indices.
-2. **Missing Values**: Dropped records with missing critical metadata (e.g. empty track or artist names).
-3. **Duplicate Removal**: Eliminated **24,259** duplicate tracks based on `track_id`, keeping only the first occurrence.
-- **Result**: Retained **89,740** unique tracks (**78.72%** of the original data) for high-fidelity clustering.
+## 🛠️ Data Cleaning & Preprocessing
+To get clean clusters, I preprocessed the data:
+1. **Removed Index Column**: Removed the duplicate row indices.
+2. **Missing Metadata**: Dropped any rows where critical fields like track name or artist name were empty.
+3. **Duplicates**: Spotify datasets often have duplicate tracks if they are on multiple playlists. I dropped duplicate tracks based on `track_id` (removed 24,259 tracks).
+- **Final Dataset**: Kept **89,740 unique tracks** (**78.72%** of the original data).
 
 ---
 
-## 📊 Exploratory Data Analysis & Visualizations
-Visualizations were generated in `visualize_spotify.py` and saved to the `plots/` folder:
-- `audio_features_distributions.png`: Shows distributions of main features like danceability, energy, valence, and tempo.
-- `audio_features_correlation.png`: Correlation matrix of acoustic properties. Shows that `energy` is strongly positively correlated with `loudness` (+0.82) and strongly negatively correlated with `acousticness` (-0.73).
-- `top_genres.png`: Displays track counts for the most popular genres.
-- `danceability_energy_by_genre.png`: Boxplots showing how acoustic profiles (energy and danceability) vary significantly between specific genres.
+## 📊 Exploratory Data Analysis (EDA)
+I created several plots to analyze the tracks:
+- `audio_features_distributions.png`: Shows the distribution of features like danceability, energy, valence, and tempo.
+- `audio_features_correlation.png`: Shows how different audio features correlate. For example, `energy` and `loudness` are strongly positively correlated (+0.82), while `energy` and `acousticness` are strongly negatively correlated (-0.73).
+- `top_genres.png`: Shows the most common genres in the dataset.
+- `danceability_energy_by_genre.png`: Shows how danceability and energy vary across different genres.
 
 ---
 
-## 🧼 Clustering and Unsupervised Learning
-Using K-Means, we segmented the songs based on their scaled audio features in `cluster_spotify.py`:
-1. **Elbow Method**: Plotted WCSS (Within-Cluster Sum of Squares) against $K$ (range 2 to 12) using a representative sample of 15,000 tracks. The resulting curve is saved as `plots/elbow_curve.png`.
-2. **Final Model**: Selected **$K = 10$ clusters** representing distinct acoustic archetypes.
-3. **PCA Visualization**: Reduced the feature space to 2D using Principal Component Analysis (PCA) and plotted the clusters. The visualization is saved as `plots/cluster_visualization.png`.
+## 🧼 Clustering (K-Means)
+To group the songs, I scaled the audio features using `StandardScaler` and ran K-Means:
+1. **Choosing K**: I used the Elbow Method on a sample of 15,000 tracks to find the optimal number of clusters. The curve is saved as `plots/elbow_curve.png`.
+2. **Final Clusters**: Based on the elbow curve, I selected **K=10 clusters**. The 2D PCA projection of the clusters is saved as `plots/cluster_visualization.png`.
 
-### **Cluster Characteristics**:
-- **Cluster 0**: Extremely high energy, low acousticness. Top genres: *death-metal, black-metal, hardstyle*.
-- **Cluster 1**: Highly acoustic, low energy/loudness. Top genres: *romance, honky-tonk, tango*.
-- **Cluster 8**: Extremely low energy, very quiet ambient sounds. Top genres: *new-age, sleep, ambient*.
-- **Cluster 4**: High danceability and energy (party tracks). Top genres: *dance, k-pop, turkish*.
+### **Cluster Profiles**:
+- **Cluster 0**: High energy, low acousticness (contains *death-metal, black-metal, hardstyle*).
+- **Cluster 1**: Acoustic, slow, romantic songs (contains *romance, honky-tonk, tango*).
+- **Cluster 8**: Very quiet, slow ambient music (contains *new-age, sleep, ambient*).
+- **Cluster 4**: Upbeat, high-energy pop and dance music (contains *dance, k-pop, turkish*).
 
 ---
 
-## 📻 Similarity-Based Recommendation Engine
-Using the clusters, we built a fast and targeted recommendation engine in `recommend_spotify.py`:
-1. **Lookup**: Takes a song name (and optional artist) and finds its cluster.
-2. **Filtering**: Limits search space to tracks inside the *same* cluster (acoustic profile).
-3. **Similarity**: Computes the Cosine Similarity of scaled audio features between the target song and all cluster candidates.
-4. **Output**: Returns the top 5 most similar tracks.
+## 📻 Recommendation Engine
+I built a similarity-based recommendation engine (`recommend_spotify.py`) using **Cosine Similarity**:
+1. It searches for a user-inputted song name.
+2. It finds which cluster that song belongs to.
+3. It filters the dataset to only search inside that same cluster (this keeps recommendations accurate and fast).
+4. It computes the cosine similarity between the scaled audio features of your song and all other songs in the cluster.
+5. It returns the top 5 closest matches.
 
-### **Example Run**:
+### **Example Recommendation Run**:
 - Input: **"Hold On"** by **Chord Overstreet** (Acoustic, Cluster 1)
 - Recommendations:
   1. *Hold On* by Chord Overstreet (Similarity: 0.9997)
@@ -59,25 +61,25 @@ Using the clusters, we built a fast and targeted recommendation engine in `recom
 
 ---
 
-## 🚀 How to Run the Scripts
-1. Activate your virtual environment and install dependencies:
+## 🚀 How to Run
+1. Install requirements:
    ```bash
    pip install -r requirements.txt
    ```
-2. Place the dataset `spotify_dataset.csv` inside this folder.
+2. Put `spotify_dataset.csv` in the same directory.
 3. Run preprocessing:
    ```bash
    python preprocess_spotify.py
    ```
-4. Run visualizations:
+4. Run plots:
    ```bash
    python visualize_spotify.py
    ```
-5. Run K-Means clustering:
+5. Run clustering:
    ```bash
    python cluster_spotify.py
    ```
-6. Get song recommendations:
+6. Get recommendations:
    ```bash
    python recommend_spotify.py
    ```
