@@ -1,294 +1,100 @@
-# Spotify Genre Segmentation 🎵🎶
+# Spotify Genre Segmentation & Recommendation System - Minor Project
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Jupyter Notebook](https://img.shields.io/badge/Jupyter-Notebook-orange.svg)](https://jupyter.org/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.0+-green.svg)](https://scikit-learn.org/)
-
-> **An AI/ML course project that segments and classifies Spotify music tracks into genres using machine learning.**
-
-This project applies unsupervised and supervised machine learning techniques to analyze Spotify music data, identify genre characteristics, and build predictive models for automatic genre classification.
+This is my minor project for the AI & ML course. I built a system that groups Spotify tracks into clusters based on their audio features (acousticness, danceability, energy, etc.) and uses these clusters to make similar song recommendations.
 
 ---
 
-## 🎵 Project Overview
-
-With millions of songs on Spotify, automatic genre classification helps improve music recommendations, playlist curation, and music discovery. This project explores machine learning approaches to segment music into genres.
-
-### Key Objectives
-- ✅ Analyze Spotify audio features
-- ✅ Perform unsupervised clustering (genre discovery)
-- ✅ Build supervised genre classification models
-- ✅ Compare clustering and classification approaches
-- ✅ Extract genre characteristics from audio features
-- ✅ Evaluate model performance and interpretability
+## 🛠️ Data Cleaning & Preprocessing
+To get clean clusters, I preprocessed the data:
+1. **Removed Index Column**: Removed the duplicate row indices.
+2. **Missing Metadata**: Dropped any rows where critical fields like track name or artist name were empty.
+3. **Duplicates**: Spotify datasets often have duplicate tracks if they are on multiple playlists. I dropped duplicate tracks based on `track_id` (removed 24,259 tracks).
+- **Final Dataset**: Kept **89,740 unique tracks** (**78.72%** of the original data).
 
 ---
 
-## 📊 Features
-
-### Audio Feature Analysis
-- **Acoustic Features**:
-  - Tempo (BPM)
-  - Energy level
-  - Danceability
-  - Valence (musical positivity)
-  - Acousticness
-  - Instrumentalness
-  - Loudness
-  - Speechiness
-
-- **Track Metadata**:
-  - Artist name
-  - Track name
-  - Release date
-  - Popularity
-  - Duration
-
-### Machine Learning Techniques
-- **Unsupervised Learning**:
-  - K-Means Clustering
-  - Hierarchical Clustering
-  - DBSCAN
-  - Dimensionality Reduction (PCA, t-SNE)
-
-- **Supervised Learning**:
-  - Logistic Regression
-  - Random Forest
-  - Gradient Boosting
-  - Support Vector Machines
-  - Neural Networks
-
-### Evaluation Methods
-- Silhouette Score (clustering)
-- Davies-Bouldin Index
-- Classification accuracy metrics
-- Cross-validation
-- Feature importance analysis
+## 📈 Key Insights from Data Analysis (EDA)
+I generated several exploratory plots (saved in the `plots/` folder):
+- `audio_features_distributions.png`: Shows the distribution of features like danceability, energy, valence, and tempo.
+- `audio_features_correlation.png`: Correlation matrix of acoustic properties. Shows that `energy` is strongly positively correlated with `loudness` (+0.82) and strongly negatively correlated with `acousticness` (-0.73).
+- `top_genres.png`: Displays track counts for the most popular genres.
+- `danceability_energy_by_genre.png`: Boxplots showing how acoustic profiles (energy and danceability) vary significantly between specific genres.
 
 ---
 
-## 🔧 Tech Stack
+## 🧼 Clustering (K-Means)
+To group the songs, I scaled the audio features using `StandardScaler` and ran K-Means:
+1. **Elbow Method**: Plotted WCSS (Within-Cluster Sum of Squares) against $K$ (range 2 to 12) using a representative sample of 15,000 tracks. The resulting curve is saved as `plots/elbow_curve.png`.
+2. **Final Clusters**: Based on the elbow curve, I selected **K=10 clusters**. The 2D PCA projection of the clusters is saved as `plots/cluster_visualization.png`.
 
-- **Language**: Python 3.8+
-- **Notebook**: Jupyter Notebook
-- **Libraries**:
-  - `pandas` - Data manipulation
-  - `numpy` - Numerical computing
-  - `scikit-learn` - Machine learning
-  - `matplotlib` - Visualization
-  - `seaborn` - Statistical graphics
-  - `spotipy` - Spotify API (optional)
-
----
-
-## 📥 Installation
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/vaavgit/spotify-genre-segmentation.git
-cd spotify-genre-segmentation
-```
-
-### 2. Create Virtual Environment
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Launch Jupyter
-```bash
-jupyter notebook
-```
-
-Open the project notebook to begin analysis.
+### **Cluster Profiles & Characteristics**:
+- **Cluster 0**: High energy, low acousticness (contains *death-metal, black-metal, hardstyle*).
+- **Cluster 1**: Acoustic, slow, romantic songs (contains *romance, honky-tonk, tango*).
+- **Cluster 8**: Very quiet, slow ambient music (contains *new-age, sleep, ambient*).
+- **Cluster 4**: Upbeat, high-energy pop and dance music (contains *dance, k-pop, turkish*).
 
 ---
 
-## 🎯 Usage
+## 📻 Similarity-Based Recommendation Engine
+I built a similarity-based recommendation engine (`recommend_spotify.py`) using **Cosine Similarity**:
+1. It searches for a user-inputted song name.
+2. It finds which cluster that song belongs to.
+3. It filters the dataset to only search inside that same cluster (this keeps recommendations accurate and fast).
+4. It computes the cosine similarity between the scaled audio features of your song and all other songs in the cluster.
+5. It returns the top 5 closest matches.
 
-1. **Load Spotify Data** - Import music dataset
-2. **Data Exploration** - Analyze audio features
-3. **Data Preprocessing** - Normalize and scale features
-4. **Unsupervised Learning** - Discover genre clusters
-5. **Supervised Learning** - Train classification models
-6. **Model Evaluation** - Compare performance
-7. **Visualization** - Create interpretable plots
-
----
-
-## 📋 Dataset Description
-
-### Audio Features
-| Feature | Range | Description |
-|---------|-------|-------------|
-| Acousticness | 0.0-1.0 | Acoustic vs electronic |
-| Danceability | 0.0-1.0 | How danceable the track is |
-| Energy | 0.0-1.0 | Intensity and activity |
-| Instrumentalness | 0.0-1.0 | Presence of vocals |
-| Key | 0-11 | Musical key |
-| Loudness | -60-0 dB | Overall loudness |
-| Mode | 0-1 | Major (1) or Minor (0) |
-| Speechiness | 0.0-1.0 | Presence of spoken words |
-| Tempo | 0-300+ | Beats per minute (BPM) |
-| Time Signature | 3-7 | Beats per measure |
-| Valence | 0.0-1.0 | Musical positivity |
-
----
-
-## 📊 Analysis Workflow
-
-### 1. Data Preparation
-- Load Spotify dataset
-- Handle missing values
-- Normalize audio features
-- Feature selection/engineering
-
-### 2. Exploratory Analysis
-- Analyze feature distributions
-- Correlation analysis
-- Feature importance
-- Outlier detection
-
-### 3. Unsupervised Clustering
-- Determine optimal number of clusters
-- Apply K-Means clustering
-- Visualize clusters (PCA, t-SNE)
-- Interpret cluster characteristics
-
-### 4. Supervised Classification
-- Split data into train/test
-- Train multiple classifiers
-- Evaluate performance
-- Cross-validation
-- Hyperparameter tuning
-
-### 5. Results & Insights
-- Compare model performance
-- Extract genre characteristics
-- Visualize decision boundaries
-- Generate recommendations
+### **Example Recommendation Run**:
+- Input: **"Hold On"** by **Chord Overstreet** (Acoustic, Cluster 1)
+- Recommendations:
+  1. *Hold On* by Chord Overstreet (Similarity: 0.9997)
+  2. *??* by Jay Chou (Similarity: 0.9831)
+  3. *Out Of Time* by Lund (Similarity: 0.9726)
+  4. *La Llamada* by Leiva (Similarity: 0.9707)
+  5. *Acredita* by Novo Som (Similarity: 0.9677)
 
 ---
 
 ## 📁 Project Structure
-
-```
+```text
 spotify-genre-segmentation/
-├── spotify_genre_segmentation.ipynb  # Main analysis notebook
-├── requirements.txt                   # Python dependencies
-├── data/                              # Dataset directory
-│   └── spotify_tracks.csv            # Source data
-├── visualizations/                    # Generated plots
-├── README.md                          # This file
-└── LICENSE                            # MIT License
+├── preprocess_spotify.py    # Data cleaning and feature scaling
+├── visualize_spotify.py     # EDA and audio feature correlation
+├── cluster_spotify.py       # K-Means clustering and evaluation
+├── recommend_spotify.py     # Cosine similarity-based recommendation engine
+├── requirements.txt         # Dependencies
+├── README.md                # This file
+├── LICENSE                  # MIT License
+├── spotify_kmeans_model.pkl # Serialized K-Means model
+├── spotify_scaler.pkl       # Serialized feature scaler
+└── plots/                   # Saved clustering and EDA plots
 ```
 
 ---
 
-## 💡 Key Insights
-
-### Finding 1: Audio Features Define Genres
-- Energy and danceability strongly correlate with genre
-- Valence (positivity) differs significantly across genres
-- Acousticness is a key differentiator
-
-### Finding 2: Clustering vs Classification
-- Unsupervised clustering reveals natural groupings
-- Supervised models achieve high accuracy
-- Ensemble methods outperform single models
-
-### Finding 3: Genre Characteristics
-- Electronic: High energy, high danceability, low acousticness
-- Acoustic: High acousticness, lower energy, higher valence
-- Hip-Hop: High speechiness, moderate energy
-- Classical: Low danceability, high instrumentalness
-
----
-
-## 📈 Model Performance
-
-### Clustering Metrics
-| Method | Silhouette Score | Davies-Bouldin |
-|--------|------------------|----------------|
-| K-Means | - | - |
-| Hierarchical | - | - |
-| DBSCAN | - | - |
-
-### Classification Metrics
-| Model | Accuracy | Precision | Recall | F1-Score |
-|-------|----------|-----------|--------|----------|
-| Logistic Regression | - | - | - | - |
-| Random Forest | - | - | - | - |
-| Gradient Boosting | - | - | - | - |
-| SVM | - | - | - | - |
-| Neural Network | - | - | - | - |
-
-*Run notebook to populate results*
-
----
-
-## 🎓 Learning Outcomes
-
-This project demonstrates:
-- Unsupervised vs supervised learning
-- Dimensionality reduction techniques
-- Feature engineering for music data
-- Model selection and evaluation
-- Clustering evaluation metrics
-- Classification performance metrics
-- Data visualization techniques
-- Music information retrieval (MIR)
-
----
-
-## 🚀 Future Enhancements
-
-- [ ] Real Spotify API integration
-- [ ] Recommendation engine
-- [ ] New genre discovery
-- [ ] Playlist generation
-- [ ] Time-series playlist analysis
-- [ ] Audio feature extraction from raw audio
-- [ ] Deep learning (CNN, RNN) approaches
-- [ ] Web app deployment
-
----
-
-## 📚 References
-
-- [Spotify API Documentation](https://developer.spotify.com/)
-- [scikit-learn Clustering Guide](https://scikit-learn.org/stable/modules/clustering.html)
-- [Music Information Retrieval (MIR)](https://en.wikipedia.org/wiki/Music_information_retrieval)
-- [Audio Feature Analysis](https://www.music.mcgill.ca/)
+## 🚀 How to Run
+1. Install requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Put `spotify_dataset.csv` in the same directory.
+3. Run preprocessing:
+   ```bash
+   python preprocess_spotify.py
+   ```
+4. Run plots:
+   ```bash
+   python visualize_spotify.py
+   ```
+5. Run clustering:
+   ```bash
+   python cluster_spotify.py
+   ```
+6. Get recommendations:
+   ```bash
+   python recommend_spotify.py
+   ```
 
 ---
 
 ## 📜 License
-
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a Pull Request
-
----
-
-## 📧 Contact
-
-For questions or feedback, open an issue on GitHub.
-
-**Made with ❤️ by [@vaavgit](https://github.com/vaavgit)**
-
-⭐ If you found this interesting, please star the repository!
+This project is open-source under the **MIT License**. See [LICENSE](LICENSE) for details.
